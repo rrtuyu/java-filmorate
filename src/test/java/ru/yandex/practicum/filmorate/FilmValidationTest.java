@@ -1,14 +1,15 @@
 package ru.yandex.practicum.filmorate;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ public class FilmValidationTest {
         this.name = "name";
         this.description = "description";
         this.rDate = LocalDate.of(2000, 1, 1);
-        this.duration = 1l;
+        this.duration = 1L;
     }
 
     private Film getFilm() {
@@ -103,7 +104,7 @@ public class FilmValidationTest {
 
     @Test
     void shouldFailWhenDurationIs0() {
-        this.duration = 0l;
+        this.duration = 0L;
         Film film = getFilm();
         Set<ConstraintViolation<Film>> v = validator.validate(film);
         assertEquals(1, v.size(), "Failed validation for duration value 0");

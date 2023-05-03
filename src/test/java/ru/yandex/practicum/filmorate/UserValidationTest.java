@@ -1,14 +1,15 @@
 package ru.yandex.practicum.filmorate;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -144,7 +145,7 @@ public class UserValidationTest {
 
     @Test
     void shouldNotFailWhenBirthdayIsFuture() {
-        this.birthday = LocalDate.now().plusDays(1l);
+        this.birthday = LocalDate.now().plusDays(1L);
         User user = getUser();
         Set<ConstraintViolation<User>> v = validator.validate(user);
         assertEquals(1, v.size(), "Failed validation for birthday value: " + birthday);

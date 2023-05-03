@@ -1,13 +1,11 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
@@ -20,7 +18,7 @@ public class Film {
     @EqualsAndHashCode.Exclude
     private String name;
 
-    @Size(max=200, message = "Description length too long")
+    @Size(max = 200, message = "Description length too long")
     @EqualsAndHashCode.Exclude
     private String description;
 

@@ -31,7 +31,7 @@ public class UserService {
         if (!users.containsKey(user.getId())) {
             String msg = String.format("User '%d' already exists", user.getId());
             log.warn(msg);
-            throw new ValidationException(HttpStatus.NOT_FOUND,msg);
+            throw new ValidationException(HttpStatus.NOT_FOUND, msg);
         }
         users.put(user.getId(), user);
         log.info("Request PUT /users : {}", user);
