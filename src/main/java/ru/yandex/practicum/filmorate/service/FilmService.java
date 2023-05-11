@@ -16,10 +16,7 @@ import java.util.Map;
 @Service
 public class FilmService {
     private final Map<Integer, Film> films = new HashMap<>();
-
     private int localIdCounter = 1;
-
-    public FilmService(){}
 
     public Film createFilm(Film film) {
         checkId(film);
@@ -49,7 +46,7 @@ public class FilmService {
         return films.values();
     }
 
-    private void checkId(Film film){
+    private void checkId(Film film) {
         if (film.getId() == 0) {
             film.setId(localIdCounter);
             localIdCounter++;

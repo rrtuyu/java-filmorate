@@ -16,8 +16,6 @@ public class UserService {
     private final Map<Integer, User> users = new HashMap<>();
     private int localIdCounter = 1;
 
-    public UserService(){}
-
     public User createUser(User user) {
         checkId(user);
         if (users.containsKey(user.getId())) {
@@ -46,7 +44,7 @@ public class UserService {
         return users.values();
     }
 
-    public void checkId(User user){
+    public void checkId(User user) {
         if (user.getId() == 0) {
             user.setId(localIdCounter);
             localIdCounter++;
