@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -10,13 +11,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
+@Service
 public class UserService {
     private final Map<Integer, User> users = new HashMap<>();
     private int localIdCounter = 1;
 
+    public UserService(){}
+
     public User createUser(User user) {
-        validate(user);
-        if (users.containsValue(user)) {
+        checkId(user);
+        if (users.containsKey(user.getId())) {
             String msg = String.format("User '%s' already exists", user.getEmail());
             log.warn(msg);
             throw new ValidationException(HttpStatus.BAD_REQUEST, msg);
@@ -27,7 +31,7 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        validate(user);
+        checkId(user);
         if (!users.containsKey(user.getId())) {
             String msg = String.format("User '%d' already exists", user.getId());
             log.warn(msg);
@@ -42,18 +46,7 @@ public class UserService {
         return users.values();
     }
 
-    private void validate(User user) {
-        if (user.getLogin().contains(" ")) {
-            String msg = "User argument 'login' invalid: " + user.getLogin();
-            log.warn(msg);
-            throw new ValidationException(HttpStatus.BAD_REQUEST, msg);
-        }
-
-        if (user.getName() == null || user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-            log.debug("User {} 'name' field set as login '{}' by default", user.getId(), user.getLogin());
-        }
-
+    public void checkId(User user){
         if (user.getId() == 0) {
             user.setId(localIdCounter);
             localIdCounter++;

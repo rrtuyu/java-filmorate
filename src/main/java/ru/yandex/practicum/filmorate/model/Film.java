@@ -10,22 +10,20 @@ import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Film {
+    @EqualsAndHashCode.Include
     private int id;
 
     @NotEmpty(message = "Name cannot be null or empty")
     @NotBlank(message = "Name cannot be blank")
-    @EqualsAndHashCode.Exclude
     private String name;
 
     @Size(max = 200, message = "Description length too long")
-    @EqualsAndHashCode.Exclude
     private String description;
 
-    @EqualsAndHashCode.Exclude
     private LocalDate releaseDate;
 
     @Positive
-    @EqualsAndHashCode.Exclude
     private long duration;
 }
