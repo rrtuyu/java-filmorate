@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -40,11 +41,20 @@ public class FilmController {
         return service.findAll();
     }
 
+    @GetMapping("/{id}")
+    public Film findFilmById(@PathVariable final Integer id) {
+        Optional<Film> oFilm = service.findById(id);
+        if (oFilm.isPresent())
+            return oFilm.get();
+        else
+            throw new NotFoundException(String.format("Film %d doesn't exist", id));
+    }
+
     private void validate(Film film) {
         if (film.getReleaseDate() != null && film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
             String msg = "Film argument 'releaseDate' beyond the limit: " + MIN_RELEASE_DATE;
             log.warn(msg);
-            throw new ValidationException(HttpStatus.BAD_REQUEST, msg);
+            throw new ValidationException(msg);
         }
     }
 }
