@@ -9,7 +9,10 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -50,8 +53,58 @@ public class UserService {
         return userStorage.getAllUsers();
     }
 
-    public Optional<User> findById(Integer id) {
-        return Optional.ofNullable(userStorage.getUser(id));
+    public User findById(Integer id) {
+        Optional<User> oUser = Optional.ofNullable(userStorage.getUser(id));
+        if (oUser.isPresent())
+            return oUser.get();
+        else
+            throw new NotFoundException(String.format("User %d doesn't exist", id));
+    }
+
+    public Set<Integer> addFriend(Integer userId, Integer friendId) {
+        if (!userStorage.hasUser(userId))
+            throw new NotFoundException(String.format("User %d doesn't exist", userId));
+
+        if (!userStorage.hasUser(friendId))
+            throw new NotFoundException(String.format("User %d doesn't exist", friendId));
+
+        if (userId.equals(friendId))
+            throw new ValidationException("Unable to add user with the same id as friend");
+
+        return userStorage.addFriend(userId, friendId);
+    }
+
+    public Set<Integer> removeFriend(Integer userId, Integer friendId) {
+        if (!userStorage.hasUser(userId))
+            throw new NotFoundException(String.format("User %d doesn't exist", userId));
+
+        if (!userStorage.hasUser(friendId))
+            throw new NotFoundException(String.format("User %d doesn't exist", friendId));
+
+        if (!userStorage.hasFriend(userId, friendId))
+            throw new NotFoundException(String.format("User %d is not in user's %d friend list", friendId, userId));
+
+        return userStorage.removeFriend(userId, friendId);
+    }
+
+    public Set<User> getFriendsOfUser(Integer id) {
+        if (!userStorage.hasUser(id))
+            throw new NotFoundException(String.format("User %d doesn't exist", id));
+
+        Set<Integer> friendsId = userStorage.getFriends(id);
+        return friendsId.stream().map(userStorage::getUser).collect(Collectors.toSet());
+    }
+
+    public Set<User> getCommonFriends(Integer id, Integer otherId) {
+        if (!userStorage.hasUser(id))
+            throw new NotFoundException(String.format("User %d doesn't exist", id));
+
+        if (!userStorage.hasUser(otherId))
+            throw new NotFoundException(String.format("User %d doesn't exist", otherId));
+
+        Set<Integer> tempFriendsSet = new HashSet<>(userStorage.getFriends(id));
+        tempFriendsSet.retainAll(userStorage.getFriends(otherId));
+        return tempFriendsSet.stream().map(userStorage::getUser).collect(Collectors.toSet());
     }
 
     public void checkId(User user) {

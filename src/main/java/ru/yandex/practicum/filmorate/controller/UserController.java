@@ -1,15 +1,15 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @RestController
@@ -18,6 +18,7 @@ public class UserController {
 
     private final UserService service;
 
+    @Autowired
     public UserController(UserService service) {
         this.service = service;
     }
@@ -34,6 +35,12 @@ public class UserController {
         return service.updateUser(user);
     }
 
+    @PutMapping("{id}/friends/{friendId}")
+    public Set<Integer> addFriend(@PathVariable("id") final Integer userId,
+                                  @PathVariable final Integer friendId) {
+        return service.addFriend(userId, friendId);
+    }
+
     @GetMapping
     public Collection<User> findAll() {
         return service.findAll();
@@ -41,11 +48,24 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User findUserById(@PathVariable final Integer id) {
-        Optional<User> oUser = service.findById(id);
-        if (oUser.isPresent())
-            return oUser.get();
-        else
-            throw new NotFoundException(String.format("User %d doesn't exist", id));
+        return service.findById(id);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Set<User> getFriendsOfUser(@PathVariable final Integer id) {
+        return service.getFriendsOfUser(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Set<User> getCommonFriends(@PathVariable final Integer id,
+                                      @PathVariable final Integer otherId) {
+        return service.getCommonFriends(id, otherId);
+    }
+
+    @DeleteMapping("{id}/friends/{friendId}")
+    public Set<Integer> removeFriend(@PathVariable("id") final Integer userId,
+                                     @PathVariable final Integer friendId) {
+        return service.removeFriend(userId, friendId);
     }
 
     private void validate(User user) {

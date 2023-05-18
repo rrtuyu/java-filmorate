@@ -22,4 +22,10 @@ public class ErrorHandler {
     public ErrorResponse handleValidationException(final ValidationException e) {
         return new ErrorResponse(e.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleUnexpectedError(final RuntimeException e) {
+        return new ErrorResponse(e.getMessage());
+    }
 }
