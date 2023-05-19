@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -11,7 +10,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -38,6 +37,12 @@ public class FilmController {
         return service.updateFilm(film);
     }
 
+    @PutMapping("/{id}/like/{userId}")
+    public void likeFilm(@PathVariable final Integer id,
+                         @PathVariable final Integer userId) {
+        service.likeFilm(id, userId);
+    }
+
     @GetMapping
     public Collection<Film> findAll() {
         return service.findAll();
@@ -45,11 +50,18 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film findFilmById(@PathVariable final Integer id) {
-        Optional<Film> oFilm = service.findById(id);
-        if (oFilm.isPresent())
-            return oFilm.get();
-        else
-            throw new NotFoundException(String.format("Film %d doesn't exist", id));
+        return service.findById(id);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
+        return service.getPopular(count);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable final Integer id,
+                           @PathVariable final Integer userId) {
+        service.removeLike(id, userId);
     }
 
     private void validate(Film film) {

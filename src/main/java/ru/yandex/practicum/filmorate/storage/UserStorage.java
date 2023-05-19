@@ -18,11 +18,11 @@ public interface UserStorage {
 
     Collection<User> getAllUsers();
 
-    Set<Integer> addFriend(Integer userId, Integer friendId);
+    void addFriend(Integer userId, Integer friendId);
 
     Set<Integer> getFriends(Integer id);
 
-    Set<Integer> removeFriend(Integer userId, Integer friendId);
+    void removeFriend(Integer userId, Integer friendId);
 
-    boolean hasFriend(Integer userId, Integer friendId);
+    boolean hasFriend(Integer userId, Integer friendId); //не уверен, хранилищу стоит такое уметь, но почему бы и нет
 }

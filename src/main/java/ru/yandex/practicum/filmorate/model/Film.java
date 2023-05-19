@@ -31,4 +31,12 @@ public class Film {
 
     @Builder.Default
     private Set<Integer> usersWhoLikedFilm = new HashSet<>();
+
+    public void addLike(Integer userId) {
+        this.usersWhoLikedFilm.add(userId);
+    }
+
+    public void removeLike(Integer userId) {
+        this.usersWhoLikedFilm.remove(userId);
+    }
 }

@@ -36,9 +36,9 @@ public class UserController {
     }
 
     @PutMapping("{id}/friends/{friendId}")
-    public Set<Integer> addFriend(@PathVariable("id") final Integer userId,
-                                  @PathVariable final Integer friendId) {
-        return service.addFriend(userId, friendId);
+    public void addFriend(@PathVariable("id") final Integer userId,
+                          @PathVariable final Integer friendId) {
+        service.addFriend(userId, friendId);
     }
 
     @GetMapping
@@ -63,9 +63,9 @@ public class UserController {
     }
 
     @DeleteMapping("{id}/friends/{friendId}")
-    public Set<Integer> removeFriend(@PathVariable("id") final Integer userId,
-                                     @PathVariable final Integer friendId) {
-        return service.removeFriend(userId, friendId);
+    public void removeFriend(@PathVariable("id") final Integer userId,
+                             @PathVariable final Integer friendId) {
+        service.removeFriend(userId, friendId);
     }
 
     private void validate(User user) {

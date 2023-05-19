@@ -27,11 +27,9 @@ public class UserService {
 
     public User createUser(User user) {
         checkId(user);
-        if (userStorage.hasUser(user.getId())) {
-            String msg = String.format("User '%s' already exists", user.getEmail());
-            log.warn(msg);
-            throw new ValidationException(msg);
-        }
+        if (userStorage.hasUser(user.getId()))
+            throw new ValidationException(String.format("User '%s' already exists", user.getEmail()));
+
         userStorage.addUser(user.getId(), user);
         log.info("Request POST /users : {}", user);
         return user;
@@ -39,29 +37,31 @@ public class UserService {
 
     public User updateUser(User user) {
         checkId(user);
-        if (!userStorage.hasUser(user.getId())) {
-            String msg = String.format("User '%d' already exists", user.getId());
-            log.warn(msg);
-            throw new NotFoundException(msg);
-        }
+        if (!userStorage.hasUser(user.getId()))
+            throw new NotFoundException(String.format("User '%d' already exists", user.getId()));
+
         userStorage.updateUser(user.getId(), user);
         log.info("Request PUT /users : {}", user);
         return user;
     }
 
     public Collection<User> findAll() {
-        return userStorage.getAllUsers();
+        Collection<User> result = userStorage.getAllUsers();
+        log.info("Request GET /users : {}", result);
+        return result;
     }
 
     public User findById(Integer id) {
-        Optional<User> oUser = Optional.ofNullable(userStorage.getUser(id));
-        if (oUser.isPresent())
-            return oUser.get();
-        else
+        Optional<User> result = Optional.ofNullable(userStorage.getUser(id));
+        if (result.isPresent()) {
+            log.info("Request GET /user/{} : {}", id, result);
+            return result.get();
+        } else {
             throw new NotFoundException(String.format("User %d doesn't exist", id));
+        }
     }
 
-    public Set<Integer> addFriend(Integer userId, Integer friendId) {
+    public void addFriend(Integer userId, Integer friendId) {
         if (!userStorage.hasUser(userId))
             throw new NotFoundException(String.format("User %d doesn't exist", userId));
 
@@ -71,10 +71,12 @@ public class UserService {
         if (userId.equals(friendId))
             throw new ValidationException("Unable to add user with the same id as friend");
 
-        return userStorage.addFriend(userId, friendId);
+        userStorage.addFriend(friendId, userId);
+        userStorage.addFriend(userId, friendId);
+        log.info("Request PUT /users/{}/friends/{}", userId, friendId);
     }
 
-    public Set<Integer> removeFriend(Integer userId, Integer friendId) {
+    public void removeFriend(Integer userId, Integer friendId) {
         if (!userStorage.hasUser(userId))
             throw new NotFoundException(String.format("User %d doesn't exist", userId));
 
@@ -84,7 +86,9 @@ public class UserService {
         if (!userStorage.hasFriend(userId, friendId))
             throw new NotFoundException(String.format("User %d is not in user's %d friend list", friendId, userId));
 
-        return userStorage.removeFriend(userId, friendId);
+        userStorage.removeFriend(friendId, userId);
+        userStorage.removeFriend(userId, friendId);
+        log.info("Request DELETE /users/{}/friends/{}", userId, friendId);
     }
 
     public Set<User> getFriendsOfUser(Integer id) {
@@ -104,6 +108,7 @@ public class UserService {
 
         Set<Integer> tempFriendsSet = new HashSet<>(userStorage.getFriends(id));
         tempFriendsSet.retainAll(userStorage.getFriends(otherId));
+        log.info("Request GET users/{}/friends/common/{} : {}", id, otherId, tempFriendsSet);
         return tempFriendsSet.stream().map(userStorage::getUser).collect(Collectors.toSet());
     }
 
