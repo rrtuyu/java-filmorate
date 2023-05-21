@@ -8,6 +8,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,7 +25,8 @@ public class UserValidationTest {
         int id = 1;
         String name = "name";
         LocalDate birthday = LocalDate.of(2000, 1, 1);
-        this.user = new User(email, login, id, name, birthday);
+        Set<Integer> friends = new HashSet<>();
+        this.user = new User(email, login, id, name, birthday, friends);
     }
 
     @Test

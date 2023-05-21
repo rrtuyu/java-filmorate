@@ -8,6 +8,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,7 +25,8 @@ public class FilmValidationTest {
         String description = "description";
         LocalDate rDate = LocalDate.of(2000, 1, 1);
         long duration = 1L;
-        film = new Film(id, name, description, rDate, duration);
+        Set<Integer> usersWhoLikedFilm = new HashSet<>();
+        film = new Film(id, name, description, rDate, duration, usersWhoLikedFilm);
     }
 
     @Test
