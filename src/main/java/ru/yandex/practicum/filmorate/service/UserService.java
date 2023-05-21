@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,10 +51,10 @@ public class UserService {
     }
 
     public User findById(Integer id) {
-        Optional<User> result = Optional.ofNullable(userStorage.getUser(id));
-        if (result.isPresent()) {
+        if (userStorage.hasUser(id)) {
+            User result = userStorage.getUser(id);
             log.info("Request GET /user/{} : {}", id, result);
-            return result.get();
+            return result;
         } else {
             throw new NotFoundException(String.format("User %d doesn't exist", id));
         }

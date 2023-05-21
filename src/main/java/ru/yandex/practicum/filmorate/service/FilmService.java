@@ -54,13 +54,9 @@ public class FilmService {
     }
 
     public Film findById(Integer id) {
-        Optional<Film> result = Optional.ofNullable(filmStorage.getFilm(id));
-        if (result.isPresent()) {
-            log.info("Request GET /films/'id' : {}", result);
-            return result.get();
-        } else {
-            throw new NotFoundException(String.format("Film %d doesn't exist", id));
-        }
+        Optional<Film> result = filmStorage.getFilm(id);
+        log.info("Request GET /films/{} : {}", id, result);
+        return result.orElseThrow(() -> new NotFoundException(String.format("Film %d doesn't exist", id)));
     }
 
     public void likeFilm(Integer id, Integer userId) {

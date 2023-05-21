@@ -12,8 +12,6 @@ public interface UserStorage {
 
     boolean hasUser(Integer id);
 
-    boolean hasUser(User user);
-
     User getUser(Integer id);
 
     Collection<User> getAllUsers();

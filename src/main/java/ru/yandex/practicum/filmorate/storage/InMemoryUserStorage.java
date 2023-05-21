@@ -10,7 +10,7 @@ import java.util.Set;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
-    private static final Map<Integer, User> users = new HashMap<>();
+    private final Map<Integer, User> users = new HashMap<>();
 
     public void addUser(Integer id, User user) {
         users.put(id, user);
@@ -22,10 +22,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     public boolean hasUser(Integer id) {
         return users.containsKey(id);
-    }
-
-    public boolean hasUser(User user) {
-        return users.containsValue(user);
     }
 
     public User getUser(Integer id) {

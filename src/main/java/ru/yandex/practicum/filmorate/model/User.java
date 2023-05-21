@@ -36,10 +36,10 @@ public class User {
     private Set<Integer> friends = new HashSet<>();
 
     public void addFriend(Integer id) {
-        this.friends.add(id);
+        friends.add(id);
     }
 
     public void removeFriend(Integer id) {
-        this.friends.remove(id);
+        friends.remove(id);
     }
 }
