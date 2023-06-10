@@ -32,6 +32,12 @@ public class Film {
     @Builder.Default
     private Set<Integer> usersWhoLikedFilm = new HashSet<>();
 
+    @Builder.Default
+    private Set<Genre> genres = new HashSet<>();
+
+    @NotNull
+    private Rating mpa;
+
     public void addLike(Integer userId) {
         usersWhoLikedFilm.add(userId);
     }

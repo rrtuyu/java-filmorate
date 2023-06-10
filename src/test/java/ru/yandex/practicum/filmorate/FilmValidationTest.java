@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -26,7 +28,9 @@ public class FilmValidationTest {
         LocalDate rDate = LocalDate.of(2000, 1, 1);
         long duration = 1L;
         Set<Integer> usersWhoLikedFilm = new HashSet<>();
-        film = new Film(id, name, description, rDate, duration, usersWhoLikedFilm);
+        Set<Genre> genre = new HashSet<>();
+        Rating rating = new Rating(1, "G", "Test");
+        film = new Film(id, name, description, rDate, duration, usersWhoLikedFilm, genre, rating);
     }
 
     @Test

@@ -1,8 +1,9 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.user;
 
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 public interface UserStorage {
@@ -12,7 +13,7 @@ public interface UserStorage {
 
     boolean hasUser(Integer id);
 
-    User getUser(Integer id);
+    Optional<User> getUser(Integer id);
 
     Collection<User> getAllUsers();
 
