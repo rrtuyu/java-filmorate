@@ -29,18 +29,16 @@ public class UserService {
         if (userStorage.hasUser(user.getId()))
             throw new ValidationException(String.format("User '%s' already exists", user.getEmail()));
 
-        userStorage.addUser(user.getId(), user);
         log.info("Request POST /users : {}", user);
-        return user;
+        return userStorage.addUser(user.getId(), user);
     }
 
     public User updateUser(User user) {
         if (!userStorage.hasUser(user.getId()))
             throw new NotFoundException(String.format("User '%d' doesn't exist", user.getId()));
 
-        userStorage.updateUser(user.getId(), user);
         log.info("Request PUT /users : {}", user);
-        return user;
+        return userStorage.updateUser(user.getId(), user);
     }
 
     public Collection<User> findAll() {

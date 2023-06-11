@@ -11,13 +11,15 @@ public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Integer, Film> films = new HashMap<>();
 
     @Override
-    public void addFilm(Integer id, Film film) {
+    public Film addFilm(Integer id, Film film) {
         films.put(id, film);
+        return film;
     }
 
     @Override
-    public void updateFilm(Integer id, Film film) {
+    public Film updateFilm(Integer id, Film film) {
         films.put(id, film);
+        return film;
     }
 
     @Override

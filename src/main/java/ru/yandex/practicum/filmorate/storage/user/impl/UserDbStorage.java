@@ -23,9 +23,8 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public void addUser(Integer id, User user) {
+    public User addUser(Integer id, User user) {
         Map<String, Object> values = new HashMap<>();
-        //values.put("id", id);
         values.put("name", user.getName());
         values.put("email", user.getEmail());
         values.put("login", user.getLogin());
@@ -38,13 +37,14 @@ public class UserDbStorage implements UserStorage {
         try {
             int generatedId = insert.executeAndReturnKey(values).intValue();
             user.setId(generatedId); // костыль, надо было заставить возвращать этот метод объект юзера на прошлом тз
+            return user;
         } catch (RuntimeException e) {
             throw new ValidationException(String.format("Failed to add user: %s", user));
         }
     }
 
     @Override
-    public void updateUser(Integer id, User user) {
+    public User updateUser(Integer id, User user) {
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE users ")
                 .append("SET email = ?, login = ?, name = ?, birthday = ?")
@@ -53,6 +53,7 @@ public class UserDbStorage implements UserStorage {
         try {
             jdbcTemplate.update(sql.toString(), user.getEmail(), user.getLogin(),
                     user.getName(), user.getBirthday(), id);
+            return user;
         } catch (RuntimeException e) {
             throw new ValidationException(String.format("Failed to update user: %s", user));
         }
@@ -62,7 +63,7 @@ public class UserDbStorage implements UserStorage {
     @Override
     public boolean hasUser(Integer id) {
         String sql = "SELECT EXISTS(SELECT FROM users WHERE id = ?)";
-        return jdbcTemplate.queryForObject(sql, Boolean.class, id);
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
     }
 
     @Override
@@ -123,7 +124,7 @@ public class UserDbStorage implements UserStorage {
                 .append("SELECT EXISTS(")
                 .append("SELECT FROM friendship_request ")
                 .append("WHERE sender_id = ? AND receiver_id = ?)");
-        return jdbcTemplate.queryForObject(sql.toString(), Boolean.class, userId, friendId);
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql.toString(), Boolean.class, userId, friendId));
     }
 
     private User makeUser(ResultSet rs, int rowNum) throws SQLException {

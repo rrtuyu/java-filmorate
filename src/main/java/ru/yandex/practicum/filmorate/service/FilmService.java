@@ -8,16 +8,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -25,33 +22,28 @@ import java.util.stream.Collectors;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final GenreDao genreDao;
 
     @Autowired
     public FilmService(@Qualifier("filmStorageDB") FilmStorage filmStorage,
-                       @Qualifier("userStorageDB") UserStorage userStorage,
-                       GenreDao genreDao) {
+                       @Qualifier("userStorageDB") UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
-        this.genreDao = genreDao;
     }
 
     public Film createFilm(Film film) {
         if (filmStorage.hasFilm(film.getId()))
             throw new ValidationException(String.format("Film id:%d already exists", film.getId()));
 
-        filmStorage.addFilm(film.getId(), film);
         log.info("Request POST /films : {}", film);
-        return film;
+        return filmStorage.addFilm(film.getId(), film);
     }
 
     public Film updateFilm(@Valid @RequestBody Film film) {
         if (!filmStorage.hasFilm(film.getId()))
             throw new NotFoundException(String.format("User '%d' already exists", film.getId()));
 
-        filmStorage.updateFilm(film.getId(), film);
         log.info("Request PUT /films : {}", film);
-        return film;
+        return filmStorage.updateFilm(film.getId(), film);
     }
 
     public Collection<Film> findAll() {

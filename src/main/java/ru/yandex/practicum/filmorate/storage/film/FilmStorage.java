@@ -7,9 +7,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface FilmStorage {
-    void addFilm(Integer id, Film film);
+    Film addFilm(Integer id, Film film);
 
-    void updateFilm(Integer id, Film film);
+    Film updateFilm(Integer id, Film film);
 
     boolean hasFilm(Integer id);
 

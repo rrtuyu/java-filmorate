@@ -16,7 +16,6 @@ import ru.yandex.practicum.filmorate.storage.rating.RatingDao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component("filmStorageDB")
 public class FilmDbStorage implements FilmStorage {
@@ -37,7 +36,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public void addFilm(Integer id, Film film) {
+    public Film addFilm(Integer id, Film film) {
         Map<String, Object> values = new HashMap<>();
         values.put("name", film.getName());
         values.put("description", film.getDescription());
@@ -51,23 +50,30 @@ public class FilmDbStorage implements FilmStorage {
 
         try {
             int generatedId = insert.executeAndReturnKey(values).intValue();
+            int mpaId = film.getMpa().getId();
             film.setId(generatedId);
+            film.setMpa(ratingDao.getById(mpaId).get());
+            film.setGenres(makeGenres(film));
+            return film;
         } catch (RuntimeException e) {
             throw new ValidationException(String.format("Failed to add film: %s", film));
         }
     }
 
     @Override
-    public void updateFilm(Integer id, Film film) {
+    public Film updateFilm(Integer id, Film film) {
         StringBuilder sql = new StringBuilder()
                 .append("UPDATE films ")
                 .append("SET name = ?, description = ?, release_date = ?, rating_id = ?, duration = ? ")
                 .append("WHERE id = ?");
 
         try {
+            int mpaId = film.getMpa().getId();
+            film.setMpa(ratingDao.getById(mpaId).get());
+            film.setGenres(makeGenres(film));
             jdbcTemplate.update(sql.toString(), film.getName(), film.getDescription(), film.getReleaseDate(),
                     film.getMpa().getId(), film.getDuration(), id);
-            makeGenres(film);
+            return film;
         } catch (RuntimeException e) {
             throw new ValidationException(String.format("Failed to update film: %s", film));
         }
@@ -76,7 +82,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public boolean hasFilm(Integer id) {
         String sql = "SELECT EXISTS(SELECT FROM films WHERE id = ?)";
-        return jdbcTemplate.queryForObject(sql, Boolean.class, id);
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(sql, Boolean.class, id));
     }
 
     @Override
@@ -97,12 +103,12 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public void addLike(Integer filmId, Integer userId) {
-        likeDao.addLike(filmId, userId); // TODO implement
+        likeDao.addLike(filmId, userId);
     }
 
     @Override
     public void removeLike(Integer filmId, Integer userId) {
-        likeDao.removeLike(filmId, userId); // TODO implement
+        likeDao.removeLike(filmId, userId);
     }
 
     @Override
@@ -125,11 +131,9 @@ public class FilmDbStorage implements FilmStorage {
                 .build();
     }
 
-    private void makeGenres(Film film) {
-        Set<Genre> genres = film.getGenres();
-        if (!genres.isEmpty())
-            genres
-                    .stream()
-                    .forEach(g -> genreDao.applyGenre(film.getId(), g.getId()));
+    private Set<Genre> makeGenres(Film film) {
+        genreDao.clearGenreById(film.getId());
+        film.getGenres().forEach(g -> genreDao.applyGenre(film.getId(), g.getId()));
+        return genreDao.getGenresOfFilm(film.getId());
     }
 }

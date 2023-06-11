@@ -14,4 +14,6 @@ public interface GenreDao {
     Collection<Genre> findAll();
 
     Genre applyGenre(Integer filmId, Integer genreId);
+
+    void clearGenreById(Integer filmId);
 }

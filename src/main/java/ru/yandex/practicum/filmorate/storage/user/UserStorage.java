@@ -7,9 +7,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface UserStorage {
-    void addUser(Integer id, User user);
+    User addUser(Integer id, User user);
 
-    void updateUser(Integer id, User user);
+    User updateUser(Integer id, User user);
 
     boolean hasUser(Integer id);
 
