@@ -58,7 +58,7 @@ public class FilmDbStorageTest {
 
     @Test
     void addFilmAndFindItById() {
-        filmDbStorage.addFilm(film1.getId(), film1);
+        filmDbStorage.addFilm(film1);
         assertEquals(film1, filmDbStorage.getFilm(film1.getId()).get());
     }
 
@@ -66,7 +66,7 @@ public class FilmDbStorageTest {
     void updateFilm() {
         addFilmAndFindItById();
         film1.setName("update name");
-        filmDbStorage.updateFilm(film1.getId(), film1);
+        filmDbStorage.updateFilm(film1);
         Film film = filmDbStorage.getFilm(film1.getId()).get();
         assertThat(film).hasFieldOrPropertyWithValue("name", film1.getName());
     }
@@ -74,14 +74,14 @@ public class FilmDbStorageTest {
     @Test
     void hasFilm() {
         assertFalse(filmDbStorage.hasFilm(film1.getId()));
-        filmDbStorage.addFilm(film1.getId(), film1);
+        filmDbStorage.addFilm(film1);
         assertTrue(filmDbStorage.hasFilm(film1.getId()));
     }
 
     @Test
     void findAll() {
-        filmDbStorage.addFilm(film1.getId(), film1);
-        filmDbStorage.addFilm(film2.getId(), film2);
+        filmDbStorage.addFilm(film1);
+        filmDbStorage.addFilm(film2);
 
         assertEquals(2, filmDbStorage.getAllFilms().size());
     }
@@ -89,7 +89,7 @@ public class FilmDbStorageTest {
     @Test
     void addLikeAndGetLikes() {
         userDbStorage.addUser(user.getId(), user);
-        filmDbStorage.addFilm(film1.getId(), film1);
+        filmDbStorage.addFilm(film1);
         filmDbStorage.addLike(film1.getId(), user.getId());
         assertEquals(1, filmDbStorage.getLikes(film1.getId()).size());
     }

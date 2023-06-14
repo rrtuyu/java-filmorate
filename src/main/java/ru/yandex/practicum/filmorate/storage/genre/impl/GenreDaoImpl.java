@@ -13,7 +13,6 @@ import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class GenreDaoImpl implements GenreDao {
@@ -41,14 +40,11 @@ public class GenreDaoImpl implements GenreDao {
     }
 
     @Override
-    public Set<Genre> getGenresOfFilm(Integer filmId) {
-        StringBuilder sql = new StringBuilder()
-                .append("SELECT g.id, g.name FROM film_genre AS fg ")
-                .append("LEFT JOIN genre AS g ON fg.genre_id=g.id ")
-                .append("WHERE fg.film_id = ?");
-        return jdbcTemplate.query(sql.toString(), this::makeGenre, filmId)
-                .stream().sorted(Comparator.comparingInt(Genre::getId))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+    public Collection<Genre> getGenresOfFilm(Integer filmId) {
+        String sql = "SELECT g.id, g.name FROM film_genre AS fg " +
+                "LEFT JOIN genre AS g ON fg.genre_id=g.id " +
+                "WHERE fg.film_id = ?";
+        return jdbcTemplate.query(sql, this::makeGenre, filmId);
     }
 
     @Override
@@ -75,6 +71,26 @@ public class GenreDaoImpl implements GenreDao {
     public void clearGenreById(Integer filmId) {
         String sql = "DELETE FROM film_genre WHERE film_id = ?";
         jdbcTemplate.update(sql, filmId);
+    }
+
+    @Override
+    public Map<Integer, Collection<Genre>> getFilmGenreMap() {
+        String sql = "SELECT fg.film_id, g.id genre_id, g.name genre_name FROM film_genre fg " +
+                "JOIN genre g ON g.id = fg.genre_id " +
+                "ORDER BY fg.film_id, genre_id";
+
+        Map<Integer, Collection<Genre>> res = new HashMap<>();
+        jdbcTemplate.query(sql, rs -> {
+            Genre genre = Genre.builder()
+                    .id(rs.getInt("genre_id"))
+                    .name(rs.getString("genre_name"))
+                    .build();
+
+            Integer filmId = rs.getInt("film_id");
+            res.putIfAbsent(filmId, new ArrayList<>());
+            res.get(filmId).add(genre);
+        });
+        return res;
     }
 
     private Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {

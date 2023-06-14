@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -31,19 +30,16 @@ public class FilmService {
     }
 
     public Film createFilm(Film film) {
-        if (filmStorage.hasFilm(film.getId()))
-            throw new ValidationException(String.format("Film id:%d already exists", film.getId()));
-
         log.info("Request POST /films : {}", film);
-        return filmStorage.addFilm(film.getId(), film);
+        return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(@Valid @RequestBody Film film) {
         if (!filmStorage.hasFilm(film.getId()))
-            throw new NotFoundException(String.format("User '%d' already exists", film.getId()));
+            throw new NotFoundException(String.format("Film '%d' doesn't exist", film.getId()));
 
         log.info("Request PUT /films : {}", film);
-        return filmStorage.updateFilm(film.getId(), film);
+        return filmStorage.updateFilm(film);
     }
 
     public Collection<Film> findAll() {

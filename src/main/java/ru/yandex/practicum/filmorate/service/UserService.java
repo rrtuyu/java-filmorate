@@ -10,10 +10,8 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -26,9 +24,6 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        if (userStorage.hasUser(user.getId()))
-            throw new ValidationException(String.format("User '%s' already exists", user.getEmail()));
-
         log.info("Request POST /users : {}", user);
         return userStorage.addUser(user.getId(), user);
     }
@@ -38,7 +33,7 @@ public class UserService {
             throw new NotFoundException(String.format("User '%d' doesn't exist", user.getId()));
 
         log.info("Request PUT /users : {}", user);
-        return userStorage.updateUser(user.getId(), user);
+        return userStorage.updateUser(user);
     }
 
     public Collection<User> findAll() {
@@ -86,12 +81,7 @@ public class UserService {
         if (!userStorage.hasUser(id))
             throw new NotFoundException(String.format("User %d doesn't exist", id));
 
-        Set<Integer> friendsId = userStorage.getFriends(id);
-        return friendsId.stream()
-                .map(userStorage::getUser)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+        return userStorage.getFriends(id);
     }
 
     public Set<User> getCommonFriends(Integer id, Integer otherId) {
@@ -101,13 +91,9 @@ public class UserService {
         if (!userStorage.hasUser(otherId))
             throw new NotFoundException(String.format("User %d doesn't exist", otherId));
 
-        Set<Integer> tempFriendsSet = new HashSet<>(userStorage.getFriends(id));
+        Set<User> tempFriendsSet = userStorage.getFriends(id);
         tempFriendsSet.retainAll(userStorage.getFriends(otherId));
         log.info("Request GET users/{}/friends/common/{} : {}", id, otherId, tempFriendsSet);
-        return tempFriendsSet.stream()
-                .map(userStorage::getUser)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+        return tempFriendsSet;
     }
 }

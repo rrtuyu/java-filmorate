@@ -8,35 +8,33 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
 import ru.yandex.practicum.filmorate.storage.like.LikeDao;
-import ru.yandex.practicum.filmorate.storage.rating.RatingDao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component("filmStorageDB")
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final GenreDao genreDao;
-    private final RatingDao ratingDao;
     private final LikeDao likeDao;
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          GenreDao genreDao,
-                         RatingDao ratingDao,
                          LikeDao likeDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.genreDao = genreDao;
-        this.ratingDao = ratingDao;
         this.likeDao = likeDao;
     }
 
     @Override
-    public Film addFilm(Integer id, Film film) {
+    public Film addFilm(Film film) {
         Map<String, Object> values = new HashMap<>();
         values.put("name", film.getName());
         values.put("description", film.getDescription());
@@ -50,10 +48,8 @@ public class FilmDbStorage implements FilmStorage {
 
         try {
             int generatedId = insert.executeAndReturnKey(values).intValue();
-            int mpaId = film.getMpa().getId();
             film.setId(generatedId);
-            film.setMpa(ratingDao.getById(mpaId).get());
-            film.setGenres(makeGenres(film));
+            film.setGenres(batchUpdateGenres(film));
             return film;
         } catch (RuntimeException e) {
             throw new ValidationException(String.format("Failed to add film: %s", film));
@@ -61,18 +57,16 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film updateFilm(Integer id, Film film) {
-        StringBuilder sql = new StringBuilder()
-                .append("UPDATE films ")
-                .append("SET name = ?, description = ?, release_date = ?, rating_id = ?, duration = ? ")
-                .append("WHERE id = ?");
+    public Film updateFilm(Film film) {
+        String sql = "UPDATE films " +
+                "SET name = ?, description = ?, release_date = ?, rating_id = ?, duration = ? " +
+                "WHERE id = ?";
 
         try {
-            int mpaId = film.getMpa().getId();
-            film.setMpa(ratingDao.getById(mpaId).get());
-            film.setGenres(makeGenres(film));
-            jdbcTemplate.update(sql.toString(), film.getName(), film.getDescription(), film.getReleaseDate(),
-                    film.getMpa().getId(), film.getDuration(), id);
+            jdbcTemplate.update(sql, film.getName(), film.getDescription(), film.getReleaseDate(),
+                    film.getMpa().getId(), film.getDuration(), film.getId());
+            genreDao.clearGenreById(film.getId());
+            film.setGenres(batchUpdateGenres(film));
             return film;
         } catch (RuntimeException e) {
             throw new ValidationException(String.format("Failed to update film: %s", film));
@@ -88,8 +82,18 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Optional<Film> getFilm(Integer id) {
         try {
-            String sql = "SELECT * FROM films WHERE id = ?";
-            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeFilm, id));
+            String sql = "SELECT f.*, r.name rating_name, r.description rating_description " +
+                    "FROM films f JOIN rating r ON f.rating_id = r.id WHERE f.id = ?";
+            Optional<Film> filmOpt = Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeFilm, id));
+            if (filmOpt.isPresent()) {
+                Set<Integer> likes = likeDao.getFilmLikes(id);
+                List<Genre> genres = new ArrayList<>(genreDao.getGenresOfFilm(id));
+                filmOpt.get().setUsersWhoLikedFilm(likes);
+                filmOpt.get().setGenres(genres);
+                return filmOpt;
+            } else {
+                return Optional.empty();
+            }
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
@@ -97,8 +101,16 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getAllFilms() {
-        String sql = "SELECT * FROM films";
-        return jdbcTemplate.query(sql, this::makeFilm);
+        String sql = "SELECT f.*, r.name rating_name, r.description rating_description " +
+                "FROM films f JOIN rating r ON f.rating_id = r.id";
+        Map<Integer, Collection<Genre>> genres = genreDao.getFilmGenreMap();
+        Map<Integer, Collection<Integer>> likes = likeDao.getFIlmLikesMap();
+        Collection<Film> films = jdbcTemplate.query(sql, this::makeFilm);
+        for (Film film : films) {
+            film.setGenres(new ArrayList<>(genres.getOrDefault(film.getId(), Collections.emptyList())));
+            film.setUsersWhoLikedFilm(new HashSet<>(likes.getOrDefault(film.getId(), Collections.emptySet())));
+        }
+        return films;
     }
 
     @Override
@@ -119,21 +131,35 @@ public class FilmDbStorage implements FilmStorage {
     private Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
         int filmId = rs.getInt("id");
         int ratingId = rs.getInt("rating_id");
+        String mpaName = rs.getString("rating_name");
+        String mpaDesc = rs.getString("rating_description");
+
+        Rating mpa = Rating.builder()
+                .id(ratingId)
+                .name(mpaName)
+                .description(mpaDesc)
+                .build();
+
         return Film.builder()
                 .id(filmId)
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
                 .releaseDate(rs.getDate("release_date").toLocalDate())
-                .usersWhoLikedFilm(likeDao.getFilmLikes(filmId))
                 .duration(rs.getLong("duration"))
-                .mpa(ratingDao.getById(ratingId).get())
-                .genres(genreDao.getGenresOfFilm(filmId))
+                .mpa(mpa)
                 .build();
     }
 
-    private Set<Genre> makeGenres(Film film) {
-        genreDao.clearGenreById(film.getId());
-        film.getGenres().forEach(g -> genreDao.applyGenre(film.getId(), g.getId()));
-        return genreDao.getGenresOfFilm(film.getId());
+    private List<Genre> batchUpdateGenres(Film film) {
+        String sql = "INSERT INTO film_genre (film_id, genre_id) VALUES(?, ?)";
+        List<Genre> genres = film.getGenres().stream()
+                .distinct()
+                .collect(Collectors.toList());
+        jdbcTemplate.batchUpdate(sql, genres, genres.size(),
+                (ps, genre) -> {
+                    ps.setInt(1, film.getId());
+                    ps.setInt(2, genre.getId());
+                });
+        return genres;
     }
 }

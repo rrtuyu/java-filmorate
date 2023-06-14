@@ -8,13 +8,11 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.storage.like.LikeDao;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class LikeDaoImpl implements LikeDao {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     @Autowired
     public LikeDaoImpl(JdbcTemplate jdbcTemplate) {
@@ -57,5 +55,21 @@ public class LikeDaoImpl implements LikeDao {
             result.add(rows.getInt("user_id"));
 
         return result;
+    }
+
+    @Override
+    public Map<Integer, Collection<Integer>> getFIlmLikesMap() {
+        String sql = "SELECT * FROM user_film_likes " +
+                "ORDER BY film_id";
+
+        Map<Integer, Collection<Integer>> res = new HashMap<>();
+        jdbcTemplate.query(sql, rs -> {
+            Integer userId = rs.getInt("user_id");
+            Integer filmId = rs.getInt("film_id");
+
+            res.putIfAbsent(filmId, new ArrayList<>());
+            res.get(filmId).add(userId);
+        });
+        return res;
     }
 }

@@ -17,8 +17,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(Integer id, User user) {
-        users.put(id, user);
+    public User updateUser(User user) {
+        users.put(user.getId(), user);
         return user;
     }
 
@@ -43,8 +43,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Set<Integer> getFriends(Integer id) {
-        return users.get(id).getFriends();
+    public Set<User> getFriends(Integer id) {
+        return null; // Затычка)
     }
 
     @Override

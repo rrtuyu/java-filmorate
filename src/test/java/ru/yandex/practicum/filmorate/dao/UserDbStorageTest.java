@@ -67,7 +67,7 @@ public class UserDbStorageTest {
         assertEquals(user, user1);
 
         user.setName("update name");
-        userDbStorage.updateUser(user.getId(), user);
+        userDbStorage.updateUser(user);
         assertEquals(user, userDbStorage.getUser(user.getId()).get());
     }
 

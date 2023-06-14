@@ -9,7 +9,7 @@ import java.util.Set;
 public interface UserStorage {
     User addUser(Integer id, User user);
 
-    User updateUser(Integer id, User user);
+    User updateUser(User user);
 
     boolean hasUser(Integer id);
 
@@ -19,7 +19,7 @@ public interface UserStorage {
 
     void addFriend(Integer userId, Integer friendId);
 
-    Set<Integer> getFriends(Integer id);
+    Set<User> getFriends(Integer id);
 
     void removeFriend(Integer userId, Integer friendId);
 
