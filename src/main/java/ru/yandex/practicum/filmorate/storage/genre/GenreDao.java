@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.genre;
 
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.Collection;
@@ -17,5 +18,5 @@ public interface GenreDao {
 
     void clearGenreById(Integer filmId);
 
-    Map<Integer, Collection<Genre>> getFilmGenreMap();
+    Map<Integer, Collection<Genre>> getFilmGenreMap(Collection<Film> films);
 }

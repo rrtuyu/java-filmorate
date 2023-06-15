@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 import java.util.*;
 
 @Component("userStorageRAM")
+@Deprecated
 public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
 

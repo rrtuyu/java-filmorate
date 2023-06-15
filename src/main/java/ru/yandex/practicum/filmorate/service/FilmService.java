@@ -12,9 +12,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -79,12 +77,8 @@ public class FilmService {
         log.info("Request DELETE films/{}/like/{}", id, userId);
     }
 
-    public List<Film> getPopular(int count) {
-        List<Film> result = filmStorage.getAllFilms().stream()
-                .sorted((f1, f2) -> f2.getUsersWhoLikedFilm().size() - f1.getUsersWhoLikedFilm().size())
-                .limit(count)
-                .collect(Collectors.toList());
-        log.info("Request GET /films/popular?count={} : {}", count, result);
-        return result;
+    public Collection<Film> getPopular(int count) {
+        log.info("Request GET /films/popular?count={}", count);
+        return filmStorage.getPopular(count);
     }
 }

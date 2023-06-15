@@ -86,9 +86,7 @@ public class FilmDbStorage implements FilmStorage {
                     "FROM films f JOIN rating r ON f.rating_id = r.id WHERE f.id = ?";
             Optional<Film> filmOpt = Optional.ofNullable(jdbcTemplate.queryForObject(sql, this::makeFilm, id));
             if (filmOpt.isPresent()) {
-                Set<Integer> likes = likeDao.getFilmLikes(id);
                 List<Genre> genres = new ArrayList<>(genreDao.getGenresOfFilm(id));
-                filmOpt.get().setUsersWhoLikedFilm(likes);
                 filmOpt.get().setGenres(genres);
                 return filmOpt;
             } else {
@@ -103,13 +101,27 @@ public class FilmDbStorage implements FilmStorage {
     public Collection<Film> getAllFilms() {
         String sql = "SELECT f.*, r.name rating_name, r.description rating_description " +
                 "FROM films f JOIN rating r ON f.rating_id = r.id";
-        Map<Integer, Collection<Genre>> genres = genreDao.getFilmGenreMap();
-        Map<Integer, Collection<Integer>> likes = likeDao.getFIlmLikesMap();
         Collection<Film> films = jdbcTemplate.query(sql, this::makeFilm);
-        for (Film film : films) {
+        Map<Integer, Collection<Genre>> genres = genreDao.getFilmGenreMap(films);
+        for (Film film : films)
             film.setGenres(new ArrayList<>(genres.getOrDefault(film.getId(), Collections.emptyList())));
-            film.setUsersWhoLikedFilm(new HashSet<>(likes.getOrDefault(film.getId(), Collections.emptySet())));
-        }
+
+        return films;
+    }
+
+    @Override
+    public Collection<Film> getPopular(int count) {
+        String sql = "SELECT f.*, r.name rating_name, r.description rating_description " +
+                "FROM films f JOIN rating r ON f.rating_id = r.id " +
+                "LEFT JOIN user_film_likes ufl ON f.id = ufl.film_id " +
+                "GROUP BY f.id " +
+                "ORDER BY COUNT(ufl.film_id) DESC " +
+                "LIMIT ?";
+        Collection<Film> films = jdbcTemplate.query(sql, this::makeFilm, count);
+        Map<Integer, Collection<Genre>> genres = genreDao.getFilmGenreMap(films);
+        for (Film film : films)
+            film.setGenres(new ArrayList<>(genres.getOrDefault(film.getId(), Collections.emptyList())));
+
         return films;
     }
 

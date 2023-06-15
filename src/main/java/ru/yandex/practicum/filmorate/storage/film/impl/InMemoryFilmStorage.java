@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import java.util.*;
 
 @Component("fIlmStorageRAM")
+@Deprecated
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Integer, Film> films = new HashMap<>();
 
@@ -50,5 +51,10 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Set<Integer> getLikes(Integer id) {
         return films.get(id).getUsersWhoLikedFilm();
+    }
+
+    @Override
+    public Collection<Film> getPopular(int count) {
+        return null;
     }
 }

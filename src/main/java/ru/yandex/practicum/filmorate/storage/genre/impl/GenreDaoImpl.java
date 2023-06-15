@@ -7,12 +7,14 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class GenreDaoImpl implements GenreDao {
@@ -74,12 +76,19 @@ public class GenreDaoImpl implements GenreDao {
     }
 
     @Override
-    public Map<Integer, Collection<Genre>> getFilmGenreMap() {
-        String sql = "SELECT fg.film_id, g.id genre_id, g.name genre_name FROM film_genre fg " +
+    public Map<Integer, Collection<Genre>> getFilmGenreMap(Collection<Film> films) {
+        String inSql = films.stream()
+                .map(Film::getId)
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        String sql = String.format("SELECT fg.film_id, g.id genre_id, g.name genre_name FROM film_genre fg " +
                 "JOIN genre g ON g.id = fg.genre_id " +
-                "ORDER BY fg.film_id, genre_id";
+                "WHERE fg.film_id IN (%s) " +
+                "ORDER BY fg.film_id, genre_id", inSql);
 
         Map<Integer, Collection<Genre>> res = new HashMap<>();
+
         jdbcTemplate.query(sql, rs -> {
             Genre genre = Genre.builder()
                     .id(rs.getInt("genre_id"))

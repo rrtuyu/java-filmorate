@@ -22,4 +22,6 @@ public interface FilmStorage {
     void removeLike(Integer filmId, Integer userId);
 
     Set<Integer> getLikes(Integer id);
+
+    Collection<Film> getPopular(int count);
 }
