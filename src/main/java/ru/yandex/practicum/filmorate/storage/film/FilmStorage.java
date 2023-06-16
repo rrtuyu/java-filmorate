@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.film;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -7,9 +7,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface FilmStorage {
-    void addFilm(Integer id, Film film);
+    Film addFilm(Film film);
 
-    void updateFilm(Integer id, Film film);
+    Film updateFilm(Film film);
 
     boolean hasFilm(Integer id);
 
@@ -22,4 +22,6 @@ public interface FilmStorage {
     void removeLike(Integer filmId, Integer userId);
 
     Set<Integer> getLikes(Integer id);
+
+    Collection<Film> getPopular(int count);
 }

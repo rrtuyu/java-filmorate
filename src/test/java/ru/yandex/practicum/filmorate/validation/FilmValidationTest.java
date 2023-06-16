@@ -1,14 +1,18 @@
-package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate.validation;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rating;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,7 +30,9 @@ public class FilmValidationTest {
         LocalDate rDate = LocalDate.of(2000, 1, 1);
         long duration = 1L;
         Set<Integer> usersWhoLikedFilm = new HashSet<>();
-        film = new Film(id, name, description, rDate, duration, usersWhoLikedFilm);
+        List<Genre> genre = new ArrayList<>();
+        Rating rating = new Rating(1, "G", "Test");
+        film = new Film(id, name, description, rDate, duration, usersWhoLikedFilm, genre, rating);
     }
 
     @Test

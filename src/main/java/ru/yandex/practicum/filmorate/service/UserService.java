@@ -2,46 +2,38 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class UserService {
     private final UserStorage userStorage;
-    private int localIdCounter = 1;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userStorageDB") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
     public User createUser(User user) {
-        checkId(user);
-        if (userStorage.hasUser(user.getId()))
-            throw new ValidationException(String.format("User '%s' already exists", user.getEmail()));
-
-        userStorage.addUser(user.getId(), user);
         log.info("Request POST /users : {}", user);
-        return user;
+        return userStorage.addUser(user.getId(), user);
     }
 
     public User updateUser(User user) {
-        checkId(user);
         if (!userStorage.hasUser(user.getId()))
-            throw new NotFoundException(String.format("User '%d' already exists", user.getId()));
+            throw new NotFoundException(String.format("User '%d' doesn't exist", user.getId()));
 
-        userStorage.updateUser(user.getId(), user);
         log.info("Request PUT /users : {}", user);
-        return user;
+        return userStorage.updateUser(user);
     }
 
     public Collection<User> findAll() {
@@ -51,13 +43,9 @@ public class UserService {
     }
 
     public User findById(Integer id) {
-        if (userStorage.hasUser(id)) {
-            User result = userStorage.getUser(id);
-            log.info("Request GET /user/{} : {}", id, result);
-            return result;
-        } else {
-            throw new NotFoundException(String.format("User %d doesn't exist", id));
-        }
+        Optional<User> result = userStorage.getUser(id);
+        log.info("Request GET /users/{} : {}", id, result);
+        return result.orElseThrow(() -> new NotFoundException(String.format("User %d doesn't exist", id)));
     }
 
     public void addFriend(Integer userId, Integer friendId) {
@@ -70,7 +58,6 @@ public class UserService {
         if (userId.equals(friendId))
             throw new ValidationException("Unable to add user with the same id as friend");
 
-        userStorage.addFriend(friendId, userId);
         userStorage.addFriend(userId, friendId);
         log.info("Request PUT /users/{}/friends/{}", userId, friendId);
     }
@@ -94,8 +81,7 @@ public class UserService {
         if (!userStorage.hasUser(id))
             throw new NotFoundException(String.format("User %d doesn't exist", id));
 
-        Set<Integer> friendsId = userStorage.getFriends(id);
-        return friendsId.stream().map(userStorage::getUser).collect(Collectors.toSet());
+        return userStorage.getFriends(id);
     }
 
     public Set<User> getCommonFriends(Integer id, Integer otherId) {
@@ -105,17 +91,9 @@ public class UserService {
         if (!userStorage.hasUser(otherId))
             throw new NotFoundException(String.format("User %d doesn't exist", otherId));
 
-        Set<Integer> tempFriendsSet = new HashSet<>(userStorage.getFriends(id));
+        Set<User> tempFriendsSet = userStorage.getFriends(id);
         tempFriendsSet.retainAll(userStorage.getFriends(otherId));
         log.info("Request GET users/{}/friends/common/{} : {}", id, otherId, tempFriendsSet);
-        return tempFriendsSet.stream().map(userStorage::getUser).collect(Collectors.toSet());
-    }
-
-    public void checkId(User user) {
-        if (user.getId() == 0) {
-            user.setId(localIdCounter);
-            localIdCounter++;
-            log.debug("User {} 'id' field set by default in increment order", user.getId());
-        }
+        return tempFriendsSet;
     }
 }

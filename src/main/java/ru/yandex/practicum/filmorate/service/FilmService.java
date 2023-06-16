@@ -2,49 +2,42 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.Valid;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Optional;
 
 @Slf4j
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private int localIdCounter = 1;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmService(@Qualifier("filmStorageDB") FilmStorage filmStorage,
+                       @Qualifier("userStorageDB") UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
     }
 
     public Film createFilm(Film film) {
-        checkId(film);
-        if (filmStorage.hasFilm(film.getId()))
-            throw new ValidationException(String.format("Film id:%d already exists", film.getId()));
-
-        filmStorage.addFilm(film.getId(), film);
         log.info("Request POST /films : {}", film);
-        return film;
+        return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(@Valid @RequestBody Film film) {
-        checkId(film);
         if (!filmStorage.hasFilm(film.getId()))
-            throw new NotFoundException(String.format("User '%d' already exists", film.getId()));
+            throw new NotFoundException(String.format("Film '%d' doesn't exist", film.getId()));
 
-        filmStorage.updateFilm(film.getId(), film);
         log.info("Request PUT /films : {}", film);
-        return film;
+        return filmStorage.updateFilm(film);
     }
 
     public Collection<Film> findAll() {
@@ -84,20 +77,8 @@ public class FilmService {
         log.info("Request DELETE films/{}/like/{}", id, userId);
     }
 
-    public List<Film> getPopular(int count) {
-        List<Film> result = filmStorage.getAllFilms().stream()
-                .sorted((f1, f2) -> f2.getUsersWhoLikedFilm().size() - f1.getUsersWhoLikedFilm().size())
-                .limit(count)
-                .collect(Collectors.toList());
-        log.info("Request GET /films/popular?count={} : {}", count, result);
-        return result;
-    }
-
-    private void checkId(Film film) {
-        if (film.getId() == 0) {
-            film.setId(localIdCounter);
-            localIdCounter++;
-            log.debug("User {} 'id' field set by default in increment order", film.getId());
-        }
+    public Collection<Film> getPopular(int count) {
+        log.info("Request GET /films/popular?count={}", count);
+        return filmStorage.getPopular(count);
     }
 }

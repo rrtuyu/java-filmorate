@@ -1,11 +1,12 @@
 package ru.yandex.practicum.filmorate.model;
 
-
 import lombok.*;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -31,6 +32,12 @@ public class Film {
 
     @Builder.Default
     private Set<Integer> usersWhoLikedFilm = new HashSet<>();
+
+    @Builder.Default
+    private List<Genre> genres = new ArrayList<>();
+
+    @NotNull
+    private Rating mpa;
 
     public void addLike(Integer userId) {
         usersWhoLikedFilm.add(userId);
